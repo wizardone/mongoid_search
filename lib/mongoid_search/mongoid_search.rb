@@ -16,9 +16,9 @@ module Mongoid::Search
     def search_in(*args)
       puts "overwrite"
       args, _options = args_and_options(args)
-      search_fields = (search_fields || []).concat args
+      self.search_fields = (self.search_fields || []).concat args
 
-      search_fields.first.keys.each do |key|
+      self.search_fields.first.keys.each do |key|
         field "#{key}_keywords", type: Array
         index({ "#{key}_keywords" => 1 }, background: true)
       end
@@ -125,9 +125,10 @@ module Mongoid::Search
     end
 
     def set_keywords
+      binding.pry
       fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
           field = Mongoid::Search::Util
-                  .keywords(self, search_fields)
+                  .keywords(self, self.search_fields)
                   .flatten
                   .reject { |k| k.nil? || k.empty? }
                   .uniq
