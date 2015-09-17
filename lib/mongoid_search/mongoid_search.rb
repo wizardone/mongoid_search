@@ -14,12 +14,14 @@ module Mongoid::Search
   module ClassMethods #:nodoc:
     # Set a field or a number of fields as sources for search
     def search_in(*args)
-      args, options = args_and_options(args)
-      self.search_fields = (self.search_fields || []).concat args
+      puts "overwrite"
+      args, _options = args_and_options(args)
+      search_fields = (search_fields || []).concat args
 
-      field :_keywords, :type => Array
-
-      index({ :_keywords => 1 }, { :background => true })
+      search_fields.first.keys.each do |key|
+        field "#{key}_keywords", type: Array
+        index({ "#{key}_keywords" => 1 }, background: true)
+      end
 
       before_save :set_keywords
     end
@@ -123,7 +125,13 @@ module Mongoid::Search
     end
 
     def set_keywords
-      self._keywords = Mongoid::Search::Util.keywords(self, self.search_fields).
-        flatten.reject{|k| k.nil? || k.empty?}.uniq.sort
+      fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
+          field = Mongoid::Search::Util
+                  .keywords(self, search_fields)
+                  .flatten
+                  .reject { |k| k.nil? || k.empty? }
+                  .uniq
+                  .sort
+      end
     end
 end
