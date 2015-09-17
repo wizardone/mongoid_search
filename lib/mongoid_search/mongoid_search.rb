@@ -125,7 +125,6 @@ module Mongoid::Search
     end
 
     def set_keywords
-      binding.pry
       fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
           field = Mongoid::Search::Util
                   .keywords(self, self.search_fields)
