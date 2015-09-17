@@ -126,12 +126,15 @@ module Mongoid::Search
 
     def set_keywords
       fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
-          field = Mongoid::Search::Util
-                  .keywords(self, self.search_fields)
+        association_model = field.split("_").first
+        #self.search_fields.first[field.split("_").first.to_sym]
+        #{field.split("_").first => self.search_fields.first[field.split("_").first.to_sym]}
+          write_attribute(field, Mongoid::Search::Util
+            .keywords(self, { association_model => self.search_fields.first[association_model.to_sym] })
                   .flatten
                   .reject { |k| k.nil? || k.empty? }
                   .uniq
-                  .sort
+                  .sort)
       end
     end
 end
