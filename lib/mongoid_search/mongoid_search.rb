@@ -52,7 +52,7 @@ module Mongoid::Search
       def query(keywords, options)
         keywords_hash = keywords.map do |kw|
           kw = Mongoid::Search.regex.call(kw) if Mongoid::Search.regex_search
-          { :_keywords => kw }
+          { "#{options[:as]}_keywords" => kw }
         end
 
         criteria.send("#{(options[:match]).to_s}_of", *keywords_hash)
@@ -71,7 +71,8 @@ module Mongoid::Search
         {
           :match              => options[:match]              || Mongoid::Search.match,
           :allow_empty_search => options[:allow_empty_search] || Mongoid::Search.allow_empty_search,
-          :relevant_search    => options[:relevant_search]    || Mongoid::Search.relevant_search
+          :relevant_search    => options[:relevant_search]    || Mongoid::Search.relevant_search,
+          :as                 => options[:as]                 || ''
         }
       end
 
