@@ -14,7 +14,6 @@ module Mongoid::Search
   module ClassMethods #:nodoc:
     # Set a field or a number of fields as sources for search
     def search_in(*args)
-      puts "overwrite"
       args, _options = args_and_options(args)
       self.search_fields = (self.search_fields || []).concat args
 
