@@ -16,10 +16,12 @@ module Mongoid::Search
     def search_in(*args)
       args, _options = args_and_options(args)
       self.search_fields = (self.search_fields || []).concat args
-
-      self.search_fields.first.keys.each do |key|
-        field "#{key}_keywords", type: Array
-        index({ "#{key}_keywords" => 1 }, background: true)
+      self.search_fields.each do |field|
+        if field.is_a?(Hash)
+          field.keys.each { |key| create_keywords_index_for(key) }
+        else
+          create_keywords_index_for(field)
+        end
       end
 
       before_save :set_keywords
@@ -55,6 +57,11 @@ module Mongoid::Search
         end
 
         criteria.send("#{(options[:match]).to_s}_of", *keywords_hash)
+      end
+
+      def create_keywords_index_for(field)
+        field "#{field}_keywords", type: Array
+        index({ "#{field}_keywords" => 1 }, background: true)
       end
 
       def args_and_options(args)
@@ -127,14 +134,23 @@ module Mongoid::Search
     def set_keywords
       fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
         association_model = field.split("_").first
-        #self.search_fields.first[field.split("_").first.to_sym]
-        #{field.split("_").first => self.search_fields.first[field.split("_").first.to_sym]}
-          write_attribute(field, Mongoid::Search::Util
-            .keywords(self, { association_model => self.search_fields.first[association_model.to_sym] })
-                  .flatten
-                  .reject { |k| k.nil? || k.empty? }
-                  .uniq
-                  .sort)
+        # A temp workaround for this. The mongoid gem
+        # accepts both strings and hashes.
+        # Need to find a better and more stable way
+        # of handling this
+        fields_to_send = if association_model == "tags"
+                           "tags"
+                         else
+                            { association_model => self.search_fields.select {|el| el.is_a?(Hash) }.first[association_model.to_sym] }
+                         end
+        write_attribute(field, Mongoid::Search::Util
+          .keywords(self, fields_to_send)
+          .flatten
+          .reject { |k| k.nil? || k.empty? }
+          .uniq
+          .sort)
       end
+
     end
+
 end
