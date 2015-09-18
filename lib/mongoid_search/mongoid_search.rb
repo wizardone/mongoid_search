@@ -138,8 +138,8 @@ module Mongoid::Search
         # accepts both strings and hashes.
         # Need to find a better and more stable way
         # of handling this
-        fields_to_send = if association_model == "tags"
-                           "tags"
+        fields_to_send = if fields.keys.include?(association_model)
+                           association_model
                          else
                             { association_model => self.search_fields.select {|el| el.is_a?(Hash) }.first[association_model.to_sym] }
                          end
@@ -150,7 +150,6 @@ module Mongoid::Search
           .uniq
           .sort)
       end
-
     end
 
 end
