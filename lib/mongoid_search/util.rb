@@ -41,7 +41,7 @@ module Mongoid::Search::Util
       normalize(:kd).
       downcase.
       to_s.
-      gsub(/[._:;'"`,?|+={}()!@#%^&*<>~\$\-\\\/\[\]]/, ' '). # strip punctuation
+      gsub(/[._:;'"`,?|={}()!@#%^&*<>~\$\-\\\/\[\]]/, ' '). # strip punctuation
       gsub(/[^\s\p{Alnum}]/,'').   # strip accents
       gsub(/[#{ligatures.keys.join("")}]/) {|c| ligatures[c]}.
       split(' ').
