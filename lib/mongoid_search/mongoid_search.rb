@@ -134,6 +134,13 @@ module Mongoid::Search
     def set_keywords
       fields.keys.keep_if { |key| key =~ /(.*)keywords/ }.each do |field|
         association_model = field.split("_").first
+        if !respond_to?(association_model)
+          # We have an association like: custom_attributes
+          objects = field.split("_")
+          objects.reject!{ |word| word == "keywords" }
+
+          association_model = objects.join("_")
+        end
         # A temp workaround for this. The mongoid gem
         # accepts both strings and hashes.
         # Need to find a better and more stable way
